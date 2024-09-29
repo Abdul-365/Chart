@@ -1,6 +1,5 @@
 import ForexChart from './ForexChart';
 
-
 const App = () => {
   return (
     <div className="App">

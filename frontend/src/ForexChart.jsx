@@ -1,11 +1,25 @@
-// src/components/ForexChart.js
 import { useEffect, useState } from 'react';
-import { Line } from 'react-chartjs-2';
 import axios from 'axios';
-import Chart from "chart.js/auto";
-import { CategoryScale } from "chart.js";
+import Chart from "react-apexcharts";
 
-Chart.register(CategoryScale);
+const options = {
+  chart: {
+    type: 'candlestick',
+    height: 350
+  },
+  title: {
+    text: 'CandleStick Chart',
+    align: 'left'
+  },
+  xaxis: {
+    type: 'datetime'
+  },
+  yaxis: {
+    tooltip: {
+      enabled: true
+    }
+  }
+};
 
 const ForexChart = () => {
   const [chartData, setChartData] = useState(null);
@@ -16,28 +30,19 @@ const ForexChart = () => {
         const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/chart`, {
           params: {
             f: 'json',
-            n: 50,
-            i: 1200,
+            n: 100,
+            i: 600,
             s: 'EURUSD',
           },
         });
 
         const data = response.data.data.EURUSD;
-        
-        const labels = data.map(entry => new Date(entry.time * 1000).toLocaleTimeString());
-        const closingPrices = data.map(entry => parseFloat(entry.close));
-        
-        setChartData({
-          labels,
-          datasets: [
-            {
-              label: 'Closing Prices',
-              data: closingPrices,
-              borderColor: 'rgba(75,192,192,1)',
-              fill: false,
-            },
-          ],
-        });
+        const formattedData = data.map(item => ({
+          x: new Date(item.time * 1000),
+          y: [parseFloat(item.open), parseFloat(item.high), parseFloat(item.low), parseFloat(item.close)]
+        }));
+        setChartData([{data: formattedData}]);
+
       } catch (error) {
         console.error('Error fetching the forex data', error);
       }
@@ -46,12 +51,12 @@ const ForexChart = () => {
     fetchData();
   }, []);
 
-  if (!chartData) 
+  if (!chartData)
     return <p>Loading...</p>;
   return (
     <>
       <h2>EURUSD</h2>
-      <Line data={chartData} />
+      <Chart options={options} series={chartData} type="candlestick" height={350} />
     </>
   );
 };
